@@ -172,8 +172,10 @@ Roll No: 24f3004822
 
 ## License
 
-MIT License — free to use, modify, and distribute.
+## License
 
+Copyright (c) 2025 Anurag Yadav. All Rights Reserved.
+This project may not be copied, modified, or distributed without prior written permission from the author.
 ---
 
 > *"This project is not a destination — it's a starting point. As I learn ML, this app will grow with me."*
