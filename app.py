@@ -1,34 +1,40 @@
 from flask import Flask, render_template, request
 from tools import tools
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 app = Flask(__name__)
 
+# ── ML MODEL — app start pe ek baar train hoga ──
+tool_sentences = [
+    f"{t['name']} {t['desc']} {' '.join(t['tags'])}"
+    for t in tools
+]
+
+vectorizer = TfidfVectorizer()
+tool_vectors = vectorizer.fit_transform(tool_sentences)
+
+# ── RECOMMENDATION FUNCTION ───────────────────
 def get_recommendations(user_input):
-    user_input = user_input.lower()
-    scored = []
+    user_vector = vectorizer.transform([user_input])
+    scores = cosine_similarity(user_vector, tool_vectors)[0]
 
-    for tool in tools:
-        score = 0
-        for tag in tool["tags"]:
-            if tag in user_input:
-                score += 3  # exact tag match = 3 points
-        
-        if score > 0:
-            scored.append({**tool, "score": score})
+    results = []
+    for i, score in enumerate(scores):
+        if score > 0.05:
+            results.append({**tools[i], "score": round(float(score), 2)})
 
-    # Score ke hisaab se sort, top 5 lo
-    scored.sort(key=lambda x: x["score"], reverse=True)
-    return scored[:5]
+    results.sort(key=lambda x: x["score"], reverse=True)
+    return results[:5]
 
+# ── ROUTES — Same as before ───────────────────
 @app.route("/", methods=["GET", "POST"])
 def index():
     results = []
     query = ""
-
     if request.method == "POST":
         query = request.form.get("query", "")
         results = get_recommendations(query)
-
     return render_template("index.html", results=results, query=query)
 
 if __name__ == "__main__":
