@@ -23,7 +23,7 @@ Got a task but don't know which AI tool to use? Just type it in — TaskPilot AI
 |---|---|
 | Backend | Python 3.x + Flask |
 | Frontend | HTML + Bootstrap 5 + Jinja2 |
-| Recommendation Logic | Rule-based keyword matching |
+| Recommendation Logic | TF-IDF Vectorization + Cosine Similarity (Machine Learning) |
 | Data Store | `tools.py` (hardcoded tool database) |
 
 ---
@@ -34,9 +34,10 @@ Got a task but don't know which AI tool to use? Just type it in — TaskPilot AI
 TaskPilot AI/
 ├── app.py              # Flask app + recommendation logic
 ├── tools.py            # AI tools database
-├── utils.py            # Helper functions
 ├── requirements.txt    # Dependencies
 ├── README.md           # This file
+├── practice code/      # Practice and experimental code
+├── static/             # Static assets (CSS, JS, images)
 └── templates/
     └── index.html      # Frontend UI
 ```
@@ -79,47 +80,58 @@ User types a task
         ↓
 Flask receives POST request
         ↓
-get_recommendations() runs
+TF-IDF vectorization on user input
         ↓
-Each tool's tags matched against user input
+Cosine similarity with all tool vectors
         ↓
-Score calculated — more matches = higher score
-        ↓
-Top 5 tools sorted by score
+Top 5 tools sorted by similarity score
         ↓
 Jinja2 renders results on screen
 ```
 
-Each tool in the database has a set of `tags`. When a user types something, the engine checks how many tags match the input. The more matches, the higher the tool ranks.
+The system creates a "sentence" for each tool combining name, description, and tags. It then vectorizes these sentences and the user query using TF-IDF, which gives higher weight to rare but important words. Cosine similarity measures how close the query vector is to each tool vector.
 
 ```python
-# Core logic — as simple as this
-for tag in tool["tags"]:
-    if tag in user_input:
-        score += 3
+# ML-powered recommendation
+tool_sentences = [f"{t['name']} {t['desc']} {' '.join(t['tags'])}" for t in tools]
+vectorizer = TfidfVectorizer()
+tool_vectors = vectorizer.fit_transform(tool_sentences)
+user_vector = vectorizer.transform([user_input])
+scores = cosine_similarity(user_vector, tool_vectors)[0]
+results = sorted(zip(tools, scores), key=lambda x: x[1], reverse=True)[:5]
 ```
 
 ---
 
 ## Is This Actually AI?
 
-**Honest answer — not yet.**
+**Yes!** TaskPilot AI now uses **machine learning** for recommendations.
 
-Currently TaskPilot AI is a **rule-based recommendation system**. It uses keyword matching, not machine learning. It will not understand `"kuch visual banana hai"` the same way a true AI would understand `"image banana hai"`.
+It employs **TF-IDF (Term Frequency-Inverse Document Frequency)** vectorization to convert tool descriptions and tags into numerical vectors, then uses **cosine similarity** to find the most relevant tools for user queries.
 
-This is intentional — the goal was to build a clean, working foundation first.
+This allows semantic understanding — "visual banana" will match image tools even if exact keywords don't match.
+
+```python
+# Core ML logic
+tool_sentences = [f"{t['name']} {t['desc']} {' '.join(t['tags'])}" for t in tools]
+vectorizer = TfidfVectorizer()
+tool_vectors = vectorizer.fit_transform(tool_sentences)
+user_vector = vectorizer.transform([user_input])
+scores = cosine_similarity(user_vector, tool_vectors)[0]
+```
 
 ---
 
 ## Roadmap — Becoming Fully AI
 
 ```
-Current   →   Rule-based keyword matching        ✅ Done
-              Fast, accurate, working
+Current   →   TF-IDF + Cosine Similarity          ✅ Done
+              Semantic understanding, not just keywords
+              "visual banana" matches image tools
 
-Stage 2   →   TF-IDF + Cosine Similarity          🔜 Next
-              Will understand meaning, not just keywords
-              "visual banana" will match image tools too
+Stage 2   →   Fine-tuned Transformer Model       🔜 Next
+              Better semantic matching, Hindi support
+              Custom embeddings for AI tools domain
 
 Stage 3   →   OpenAI API integration              📅 Planned
               Real language understanding
@@ -166,7 +178,7 @@ Pull requests are welcome. If you'd like to add more tools to the database, edit
 
 **Anurag Yadav**
 BS in Data Science and Applications — IIT Madras
-Roll No: 24f3004822
+
 
 ---
 
