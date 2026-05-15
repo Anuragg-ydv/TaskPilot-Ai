@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, render_template, request
 from tools import tools
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -38,4 +40,4 @@ def index():
     return render_template("index.html", results=results, query=query)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
