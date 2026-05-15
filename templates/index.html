@@ -1,63 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Tool Recommender</title>
-    <link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>TaskPilot AI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar-brand img { height: 100px; }
+        .hero { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 60px 0 40px; }
+        .hero h1 { font-size: 2.5rem; font-weight: 700; }
+        .hero p { font-size: 1.1rem; opacity: 0.9; }
+        .search-box { background: white; border-radius: 12px; padding: 30px; margin-top: -30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .tool-card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.2s; }
+        .tool-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .badge-score { background: #1e3a8a; color: white; font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+        .btn-search { background: #1e3a8a; color: white; border: none; padding: 10px 30px; border-radius: 8px; font-size: 16px; }
+        .btn-search:hover { background: #2563eb; color: white; }
+        .info-box { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 8px; padding: 12px 16px; }
+    </style>
 </head>
-<body class="container mt-5">
+<body class="d-flex flex-column min-vh-100">
 
-<!-- LOGO + HEADING YAHAN -->
-    <div class="d-flex align-items-center gap-2 mb-2">
-      <img src="{{ url_for('static', filename='logo.png') }}" 
-           height="120" alt="Logo">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-light bg-white border-bottom px-4 py-2">
+        <a class="navbar-brand" href="/">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="TaskPilot AI Logo" height="55">
+</a>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero text-center">
+        <div class="container">
+            <h1>AI Tool Recommender</h1>
+            <p class="mb-0">Describe your task — get the best AI tool instantly</p>
+        </div>
     </div>
 
-    <h1>AI Tool Recommender</h1>
-    <p class="text-muted">Apna kaam likho — best AI tool bataunga <br>
-         Get Better Results: Write in English and be specific about what you want to do. <br>
-Example: "remove background from image" · "write a blog post" · "make a song" <br>
-⚠️ This is a rule-based system — specific keywords give better results.
-    </p>
+    <!-- MAIN CONTENT -->
+    <div class="container flex-grow-1 mb-5">
+        <div class="search-box mb-4">
 
-    <!-- Search Form -->
-    <form method="POST" class="d-flex gap-2 mb-4">
-        <input type="text" name="query" value="{{ query }}"
-               class="form-control" placeholder="e.g. write a blog post, generate a logo...">
-        <button type="submit" class="btn btn-primary">Search</button>
-    </form>
-
-    <!-- Results -->
-    {% if results %}
-        <p class="text-muted">{{ results|length }} tools mila for: <b>{{ query }}</b></p>
-
-        {% for tool in results %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ tool.name }}</h5>
-                <p class="card-text">{{ tool.desc }}</p>
-                <a href="{{ tool.link }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                    Visit →
-                </a>
+            <!-- INFO BOX -->
+            <div class="info-box mb-3">
+                <strong>💡 Get Better Results:</strong> Write in <strong>English</strong> and be specific.
+                <span class="text-muted">e.g. "remove background from image" · "write a blog post" · "make a song"</span>
             </div>
+
+            <!-- SEARCH FORM -->
+            <form method="POST" class="d-flex gap-2">
+                <input type="text" name="query" value="{{ query }}"
+                       class="form-control form-control-lg"
+                       placeholder='Try: "edit my YouTube video" or "generate a logo"'>
+                <button type="submit" class="btn btn-search">Search</button>
+            </form>
         </div>
-        {% endfor %}
 
-    {% elif query %}
-        <p class="text-danger">Koi match nahi mila. Aur detail mein likho.</p>
-    {% endif %}
+        <!-- RESULTS -->
+        {% if results %}
+        <p class="text-muted mb-3">
+            <strong>{{ results|length }} tools</strong> found for: <strong>"{{ query }}"</strong>
+        </p>
+        <div class="row g-3">
+            {% for tool in results %}
+            <div class="col-md-6">
+                <div class="card tool-card h-100 p-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0" style="color: #1e3a8a;">{{ tool.name }}</h5>
+                            <span class="badge-score">{{ (tool.score * 100)|int }}% match</span>
+                        </div>
+                        <p class="card-text text-muted small mb-3">{{ tool.desc }}</p>
+                        <a href="{{ tool.link }}" target="_blank"
+                           class="btn btn-sm btn-outline-primary">Visit →</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
 
- <!-- <footer class="text-center text-muted py-3 border-top">
-    <small>
-      © 2025 TaskPilot AI · Built by Anurag Yadav · IIT Madras BS Data Science
-      <br>
-      All rights reserved · This is a rule-based recommendation system, not a true AI.
-    </small>
-  </footer> -->
+        {% elif query %}
+        <div class="alert alert-warning">
+            No results found for <strong>"{{ query }}"</strong> — try different keywords in English.
+        </div>
+        {% endif %}
+    </div>
 
-  <footer class="text-center text-muted py-3 border-top">
-  <small>&copy; 2026 Anurag Yadav. All Rights Reserved.</small>
-</footer>
+    <!-- FOOTER -->
+    <footer class="text-center text-muted py-3 border-top bg-white">
+        <small>
+            &copy; 2026 Anurag Yadav. All Rights Reserved. &nbsp;|&nbsp; TaskPilot AI &nbsp;|&nbsp;
+            Powered by TF-IDF + Cosine Similarity ML Model
+        </small>
+    </footer>
 
 </body>
 </html>
